@@ -27,6 +27,7 @@ class DiceBot {
         // New features
         this.totalWagered = 0;
         this.sessionStartTime = null;
+        this.sessionTimer = null;
         this.lastPrediction = 'over';
         
         this.init();
@@ -715,6 +716,14 @@ class DiceBot {
             this.profitHistory = [0];
             this.lastWin = false;
             
+            // Reset new statistics
+            this.totalWagered = 0;
+            this.sessionStartTime = null;
+            if (this.sessionTimer) {
+                clearInterval(this.sessionTimer);
+                this.sessionTimer = null;
+            }
+            
             this.updateDisplay();
             this.updateBetHistory();
             this.drawChart();
@@ -762,7 +771,12 @@ class DiceBot {
     }
     
     startSessionTimer() {
-        setInterval(() => {
+        // Clear existing timer if any
+        if (this.sessionTimer) {
+            clearInterval(this.sessionTimer);
+        }
+        
+        this.sessionTimer = setInterval(() => {
             if (this.sessionStartTime) {
                 const elapsed = Date.now() - this.sessionStartTime;
                 const hours = Math.floor(elapsed / (1000 * 60 * 60));
