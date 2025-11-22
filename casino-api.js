@@ -74,6 +74,10 @@ class StakeAPI extends CasinoAPI {
                 body: JSON.stringify({ query })
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
             
             if (data.data && data.data.user && data.data.user.balances) {
@@ -121,6 +125,10 @@ class StakeAPI extends CasinoAPI {
                     }
                 })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const data = await response.json();
             
@@ -184,7 +192,16 @@ class PrimeDiceAPI extends CasinoAPI {
     async getBalance() {
         try {
             const token = this.apiKey || this.accessToken;
-            const response = await fetch(`${this.baseURL}/users/1?access_token=${token}`);
+            const response = await fetch(`${this.baseURL}/users/1`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
             
             if (data.user && data.user.balance) {
@@ -203,15 +220,22 @@ class PrimeDiceAPI extends CasinoAPI {
             const amountSatoshi = Math.floor(amount * 100000000); // Convert BTC to satoshis
             const condition = prediction === 'over' ? '>' : '<';
 
-            const response = await fetch(`${this.baseURL}/bet?access_token=${token}`, {
+            const response = await fetch(`${this.baseURL}/bet`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: new URLSearchParams({
                     amount: amountSatoshi.toString(),
                     target: winChance.toString(),
                     condition: condition
                 })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const data = await response.json();
             
@@ -266,6 +290,10 @@ class BitslerAPI extends CasinoAPI {
                 }
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
             
             if (data.balance && data.balance.btc) {
@@ -293,6 +321,10 @@ class BitslerAPI extends CasinoAPI {
                     currency: 'btc'
                 })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const data = await response.json();
             
@@ -356,6 +388,10 @@ class Dice999API extends CasinoAPI {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
             
             if (data.Balance !== undefined) {
@@ -380,6 +416,10 @@ class Dice999API extends CasinoAPI {
                     High: prediction === 'over'
                 })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const data = await response.json();
             

@@ -189,7 +189,7 @@ class DiceBot {
             }
             
             // Attempt authentication
-            this.showNotification('Connecting to ' + site + '...', 'warning');
+            this.showNotification(`Connecting to ${site}...`, 'warning');
             const result = await this.casinoAPI.authenticate(credentials);
             
             if (result.success) {
@@ -207,14 +207,14 @@ class DiceBot {
                 
                 document.getElementById('connect-api').style.display = 'none';
                 document.getElementById('disconnect-api').style.display = 'inline-block';
-                this.showNotification('Successfully connected to ' + site, 'success');
+                this.showNotification(`Successfully connected to ${site}`, 'success');
             } else {
                 this.updateAPIStatus('disconnected', 'Connection failed');
-                this.showNotification('Failed to connect: ' + result.message, 'error');
+                this.showNotification(`Failed to connect: ${result.message}`, 'error');
             }
         } catch (error) {
             this.updateAPIStatus('disconnected', 'Error');
-            this.showNotification('Error connecting: ' + error.message, 'error');
+            this.showNotification(`Error connecting: ${error.message}`, 'error');
             console.error('API connection error:', error);
         }
     }
