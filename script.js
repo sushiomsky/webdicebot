@@ -19,13 +19,6 @@ class DiceBot {
         this.betTimeout = null;
         this.lastWin = false;
         
-        // Fibonacci sequence
-        this.fibonacciSequence = [1, 1];
-        this.fibonacciIndex = 0;
-        
-        // Labouchere sequence
-        this.labouchereSequence = [1, 2, 3, 4];
-        
         this.init();
     }
 
@@ -321,15 +314,22 @@ class DiceBot {
                     const match = line.match(/nextbet\s*=\s*(.+)/);
                     if (match) {
                         let expression = match[1].trim();
-                        // Replace variables
+                        // Replace variables with word boundaries to avoid partial matches
                         for (let [key, value] of Object.entries(variables)) {
-                            expression = expression.replace(new RegExp(key, 'g'), value);
+                            expression = expression.replace(new RegExp('\\b' + key + '\\b', 'g'), value);
                         }
-                        // Evaluate
+                        // Safely evaluate mathematical expressions only
                         try {
-                            nextBet = eval(expression);
+                            // Only allow mathematical operations and numbers
+                            if (/^[\d\s+\-*/.()]+$/.test(expression)) {
+                                nextBet = Function('"use strict"; return (' + expression + ')')();
+                            } else {
+                                console.error('Invalid expression - only mathematical operations allowed');
+                                nextBet = this.baseBet;
+                            }
                         } catch (e) {
                             console.error('Script evaluation error:', e);
+                            nextBet = this.baseBet;
                         }
                     }
                 }
