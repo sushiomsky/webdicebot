@@ -24,6 +24,7 @@
                         <option value="primedice">PrimeDice</option>
                         <option value="stake">Stake.com</option>
                         <option value="bitsler">Bitsler</option>
+                        <option value="duckdice">DuckDice</option>
                         <option value="999dice">999Dice</option>
                     </select>
                 </div>
@@ -104,6 +105,12 @@
                         <option value="over">Roll Over</option>
                         <option value="under">Roll Under</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="zigzag-enabled">
+                        ZigZag Mode (Alternate High/Low)
+                    </label>
                 </div>
                 <div class="form-group">
                     <label>Payout Multiplier:</label>
@@ -192,6 +199,21 @@ end"></textarea>
                     </label>
                     <input type="number" id="stop-streak" value="5" step="1" min="1" disabled>
                 </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stop-loss-streak-enabled">
+                        Stop on Loss Streak:
+                    </label>
+                    <input type="number" id="stop-loss-streak" value="5" step="1" min="1" disabled>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stop-balance-enabled">
+                        Stop on Balance:
+                    </label>
+                    <input type="number" id="stop-balance" value="1.00000000" step="0.00000001" disabled>
+                    <span class="unit">BTC</span>
+                </div>
             </div>
 
             <!-- Control Buttons -->
@@ -232,6 +254,22 @@ end"></textarea>
                     <div class="stat-item">
                         <span class="stat-label">Luck:</span>
                         <span id="stat-luck" class="stat-value">100.00%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Wagered:</span>
+                        <span id="stat-wagered" class="stat-value">0.00000000 BTC</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Profit/Bet:</span>
+                        <span id="stat-avg-profit" class="stat-value">0.00000000 BTC</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Session Time:</span>
+                        <span id="stat-session-time" class="stat-value">0:00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Profit/Hour:</span>
+                        <span id="stat-profit-hour" class="stat-value">0.00000000 BTC/h</span>
                     </div>
                 </div>
             </div>

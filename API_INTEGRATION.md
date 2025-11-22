@@ -9,6 +9,7 @@ Web DiceBot now supports integration with the following dice casinos:
 - **Stake.com** - API Key authentication
 - **PrimeDice** - Username/Password or API Key authentication
 - **Bitsler** - API Key authentication
+- **DuckDice** - API Key authentication
 - **999Dice** - Username/Password authentication
 
 ## Getting Started
@@ -38,6 +39,12 @@ In the Control Panel, use the "Select Site" dropdown to choose your preferred ca
 1. Log in to Bitsler
 2. Go to Settings → API Keys
 3. Create a new API key with dice betting permissions
+
+#### DuckDice
+1. Log in to DuckDice
+2. Navigate to Settings → API
+3. Create a new API key
+4. Copy the API key for use in Web DiceBot
 
 #### 999Dice
 - Use your regular 999Dice username and password

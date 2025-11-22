@@ -454,6 +454,98 @@ class Dice999API extends CasinoAPI {
     }
 }
 
+// DuckDice API Integration
+class DuckDiceAPI extends CasinoAPI {
+    constructor() {
+        super('duckdice');
+        this.baseURL = 'https://duckdice.io/api';
+    }
+
+    async authenticate(credentials) {
+        try {
+            this.apiKey = credentials.apiKey;
+            
+            // Verify API key by fetching balance
+            const balance = await this.getBalance();
+            if (balance !== null) {
+                this.authenticated = true;
+                return { success: true, message: 'Connected to DuckDice' };
+            }
+            return { success: false, message: 'Invalid API key' };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    async getBalance() {
+        try {
+            const response = await fetch(`${this.baseURL}/balance`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.balance && data.balance.btc) {
+                return parseFloat(data.balance.btc);
+            }
+            return null;
+        } catch (error) {
+            console.error('DuckDice getBalance error:', error);
+            throw error;
+        }
+    }
+
+    async placeBet(amount, winChance, prediction) {
+        try {
+            // DuckDice uses target instead of winChance
+            const target = prediction === 'over' ? (100 - winChance) : winChance;
+            
+            const response = await fetch(`${this.baseURL}/bet`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    currency: 'btc',
+                    condition: prediction === 'over' ? 'above' : 'below',
+                    target: target
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.result) {
+                return {
+                    success: true,
+                    roll: data.result.roll,
+                    won: data.result.win,
+                    profit: data.result.profit,
+                    payout: data.result.payout
+                };
+            }
+
+            return { success: false, message: 'Bet placement failed' };
+        } catch (error) {
+            console.error('DuckDice placeBet error:', error);
+            return { success: false, message: error.message };
+        }
+    }
+}
+
 // Factory function to create appropriate API instance
 function createCasinoAPI(siteName) {
     switch(siteName.toLowerCase()) {
@@ -465,6 +557,8 @@ function createCasinoAPI(siteName) {
             return new BitslerAPI();
         case '999dice':
             return new Dice999API();
+        case 'duckdice':
+            return new DuckDiceAPI();
         case 'simulation':
             return null; // Use local simulation
         default:
@@ -474,5 +568,5 @@ function createCasinoAPI(siteName) {
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CasinoAPI, StakeAPI, PrimeDiceAPI, BitslerAPI, Dice999API, createCasinoAPI };
+    module.exports = { CasinoAPI, StakeAPI, PrimeDiceAPI, BitslerAPI, Dice999API, DuckDiceAPI, createCasinoAPI };
 }

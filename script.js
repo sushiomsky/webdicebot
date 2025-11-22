@@ -24,6 +24,11 @@ class DiceBot {
         this.casinoAPI = null;
         this.isConnected = false;
         
+        // New features
+        this.totalWagered = 0;
+        this.sessionStartTime = null;
+        this.lastPrediction = 'over';
+        
         this.init();
     }
 
@@ -67,6 +72,12 @@ class DiceBot {
         });
         document.getElementById('stop-streak-enabled').addEventListener('change', (e) => {
             document.getElementById('stop-streak').disabled = !e.target.checked;
+        });
+        document.getElementById('stop-loss-streak-enabled').addEventListener('change', (e) => {
+            document.getElementById('stop-loss-streak').disabled = !e.target.checked;
+        });
+        document.getElementById('stop-balance-enabled').addEventListener('change', (e) => {
+            document.getElementById('stop-balance').disabled = !e.target.checked;
         });
 
         // Balance and bet inputs
@@ -150,7 +161,7 @@ class DiceBot {
             document.getElementById('balance').disabled = true;
             
             // Show appropriate auth method
-            if (site === 'stake' || site === 'bitsler') {
+            if (site === 'stake' || site === 'bitsler' || site === 'duckdice') {
                 apiKeyAuth.style.display = 'block';
                 usernameAuth.style.display = 'none';
             } else if (site === 'primedice' || site === '999dice') {
@@ -173,7 +184,7 @@ class DiceBot {
             
             // Get credentials
             let credentials = {};
-            if (site === 'stake' || site === 'bitsler') {
+            if (site === 'stake' || site === 'bitsler' || site === 'duckdice') {
                 credentials.apiKey = document.getElementById('api-key').value;
                 if (!credentials.apiKey) {
                     this.showNotification('Please enter your API key', 'error');
@@ -528,6 +539,13 @@ class DiceBot {
         
         this.lastWin = won;
         this.totalBets++;
+        this.totalWagered += this.currentBet;
+        
+        // ZigZag mode - alternate prediction
+        if (document.getElementById('zigzag-enabled').checked) {
+            this.lastPrediction = prediction === 'over' ? 'under' : 'over';
+            document.getElementById('prediction').value = this.lastPrediction;
+        }
         
         // Add to history
         this.betHistory.unshift({
@@ -608,6 +626,24 @@ class DiceBot {
             }
         }
         
+        // Check loss streak
+        if (document.getElementById('stop-loss-streak-enabled').checked) {
+            const lossStreakLimit = parseInt(document.getElementById('stop-loss-streak').value);
+            if (this.currentStreak <= -lossStreakLimit) {
+                this.showNotification(`Loss streak reached: ${Math.abs(this.currentStreak)}`, 'error');
+                return false;
+            }
+        }
+        
+        // Check balance limit
+        if (document.getElementById('stop-balance-enabled').checked) {
+            const balanceLimit = parseFloat(document.getElementById('stop-balance').value);
+            if (this.balance >= balanceLimit) {
+                this.showNotification(`Balance limit reached: ${this.balance.toFixed(8)} BTC`, 'success');
+                return false;
+            }
+        }
+        
         return true;
     }
 
@@ -618,6 +654,12 @@ class DiceBot {
         document.getElementById('start-bot').disabled = true;
         document.getElementById('stop-bot').disabled = false;
         document.getElementById('start-bot').classList.add('betting-active');
+        
+        // Start session timer
+        if (!this.sessionStartTime) {
+            this.sessionStartTime = Date.now();
+            this.startSessionTimer();
+        }
         
         this.runBot();
     }
@@ -704,6 +746,32 @@ class DiceBot {
         const expectedWins = this.totalBets * (parseFloat(document.getElementById('win-chance').value) / 100);
         const luck = this.totalBets > 0 ? (this.wins / expectedWins * 100) : 100;
         document.getElementById('stat-luck').textContent = luck.toFixed(2) + '%';
+        
+        // Update new statistics
+        document.getElementById('stat-wagered').textContent = this.totalWagered.toFixed(8) + ' BTC';
+        
+        const avgProfit = this.totalBets > 0 ? totalProfit / this.totalBets : 0;
+        document.getElementById('stat-avg-profit').textContent = avgProfit.toFixed(8) + ' BTC';
+        
+        // Profit per hour calculated in session timer
+        if (this.sessionStartTime) {
+            const hours = (Date.now() - this.sessionStartTime) / (1000 * 60 * 60);
+            const profitPerHour = hours > 0 ? totalProfit / hours : 0;
+            document.getElementById('stat-profit-hour').textContent = profitPerHour.toFixed(8) + ' BTC/h';
+        }
+    }
+    
+    startSessionTimer() {
+        setInterval(() => {
+            if (this.sessionStartTime) {
+                const elapsed = Date.now() - this.sessionStartTime;
+                const hours = Math.floor(elapsed / (1000 * 60 * 60));
+                const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+                document.getElementById('stat-session-time').textContent = 
+                    `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
     }
 
     updateBetHistory() {

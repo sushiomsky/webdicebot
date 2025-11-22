@@ -10,7 +10,7 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - **Manual Betting** - Place single bets manually
 - **Automated Betting** - Run continuous betting with strategies
 - **Simulation Mode** - Safe testing without real money
-- **Real Casino Integration** - Connect to Stake, PrimeDice, Bitsler, 999Dice
+- **Real Casino Integration** - Connect to Stake, PrimeDice, Bitsler, DuckDice, 999Dice
 
 ### 📊 Betting Strategies
 - **Martingale** - Double bet after loss, reset after win
@@ -31,6 +31,8 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - Stop on loss limit
 - Stop after X bets
 - Stop on win streak
+- **NEW:** Stop on loss streak
+- **NEW:** Stop on balance limit
 
 ### 📈 Statistics & Analytics
 - Real-time balance tracking
@@ -39,6 +41,10 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - Luck percentage calculator
 - Live profit chart visualization
 - Detailed bet history (last 100 bets)
+- **NEW:** Total wagered amount
+- **NEW:** Average profit per bet
+- **NEW:** Session time tracking
+- **NEW:** Profit per hour calculation
 
 ### 💾 Data Management
 - Export/Import configuration
@@ -51,11 +57,13 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - Auto-scroll history
 - Responsive design
 - Multiple site selection
+- **NEW:** ZigZag mode (alternates between high/low bets)
 
 ### 🔌 Casino API Integration
 - **Stake.com** - API Key authentication
 - **PrimeDice** - Username/Password or API Key
 - **Bitsler** - API Key authentication
+- **DuckDice** - API Key authentication
 - **999Dice** - Username/Password authentication
 - Real-time balance synchronization
 - Provably fair bet verification
