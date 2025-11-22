@@ -10,7 +10,6 @@ Web DiceBot now supports integration with the following dice casinos:
 - **PrimeDice** - Username/Password or API Key authentication
 - **Bitsler** - API Key authentication
 - **DuckDice** - API Key authentication
-- **999Dice** - Username/Password authentication
 
 ## Getting Started
 
@@ -45,9 +44,6 @@ In the Control Panel, use the "Select Site" dropdown to choose your preferred ca
 2. Navigate to Settings → API
 3. Create a new API key
 4. Copy the API key for use in Web DiceBot
-
-#### 999Dice
-- Use your regular 999Dice username and password
 
 ### 3. Connect to the Casino
 
@@ -91,7 +87,7 @@ The integration uses a modular architecture with:
 - `StakeAPI` - Implements Stake.com GraphQL API
 - `PrimeDiceAPI` - Implements PrimeDice REST API
 - `BitslerAPI` - Implements Bitsler REST API
-- `Dice999API` - Implements 999Dice web API
+- `DuckDiceAPI` - Implements DuckDice REST API
 
 **Factory Function: `createCasinoAPI(siteName)`**
 - Creates appropriate API instance based on selected site
@@ -135,7 +131,7 @@ Different casinos have different rate limits:
 - **Stake.com**: ~10 requests/second
 - **PrimeDice**: ~5 requests/second
 - **Bitsler**: ~3 requests/second
-- **999Dice**: ~2 requests/second
+- **DuckDice**: ~3 requests/second
 
 The bot respects these limits by using the "Bet Speed" setting.
 

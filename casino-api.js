@@ -346,114 +346,6 @@ class BitslerAPI extends CasinoAPI {
     }
 }
 
-// 999Dice API Integration
-class Dice999API extends CasinoAPI {
-    constructor() {
-        super('999dice');
-        this.baseURL = 'https://www.999dice.com/api';
-        this.sessionId = null;
-    }
-
-    async authenticate(credentials) {
-        try {
-            const response = await fetch(`${this.baseURL}/web/init`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: credentials.username,
-                    password: credentials.password
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.SessionId) {
-                this.sessionId = data.SessionId;
-                this.authenticated = true;
-                return { success: true, message: 'Connected to 999Dice' };
-            }
-            return { success: false, message: 'Invalid credentials' };
-        } catch (error) {
-            return { success: false, message: error.message };
-        }
-    }
-
-    async getBalance() {
-        try {
-            const response = await fetch(`${this.baseURL}/web/getbalance`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    SessionId: this.sessionId
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.Balance !== undefined) {
-                return parseFloat(data.Balance);
-            }
-            return null;
-        } catch (error) {
-            console.error('999Dice getBalance error:', error);
-            throw error;
-        }
-    }
-
-    async placeBet(amount, winChance, prediction) {
-        try {
-            const response = await fetch(`${this.baseURL}/web/bet`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    SessionId: this.sessionId,
-                    PayIn: amount,
-                    Chance: winChance,
-                    High: prediction === 'over'
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.Secret !== undefined) {
-                return {
-                    success: true,
-                    roll: data.Secret,
-                    won: data.PayOut > amount,
-                    profit: data.PayOut - amount,
-                    payout: data.PayOut
-                };
-            }
-
-            return { success: false, message: 'Bet placement failed' };
-        } catch (error) {
-            console.error('999Dice placeBet error:', error);
-            return { success: false, message: error.message };
-        }
-    }
-
-    disconnect() {
-        if (this.sessionId) {
-            // Logout
-            fetch(`${this.baseURL}/web/logout`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ SessionId: this.sessionId })
-            }).catch(console.error);
-        }
-        super.disconnect();
-        this.sessionId = null;
-    }
-}
-
 // DuckDice API Integration
 class DuckDiceAPI extends CasinoAPI {
     constructor() {
@@ -555,8 +447,6 @@ function createCasinoAPI(siteName) {
             return new PrimeDiceAPI();
         case 'bitsler':
             return new BitslerAPI();
-        case '999dice':
-            return new Dice999API();
         case 'duckdice':
             return new DuckDiceAPI();
         case 'simulation':
@@ -568,5 +458,5 @@ function createCasinoAPI(siteName) {
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CasinoAPI, StakeAPI, PrimeDiceAPI, BitslerAPI, Dice999API, DuckDiceAPI, createCasinoAPI };
+    module.exports = { CasinoAPI, StakeAPI, PrimeDiceAPI, BitslerAPI, DuckDiceAPI, createCasinoAPI };
 }

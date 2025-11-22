@@ -165,7 +165,7 @@ class DiceBot {
             if (site === 'stake' || site === 'bitsler' || site === 'duckdice') {
                 apiKeyAuth.style.display = 'block';
                 usernameAuth.style.display = 'none';
-            } else if (site === 'primedice' || site === '999dice') {
+            } else if (site === 'primedice') {
                 apiKeyAuth.style.display = 'none';
                 usernameAuth.style.display = 'block';
             }
@@ -423,55 +423,146 @@ class DiceBot {
         try {
             const script = document.getElementById('lua-script').value;
             
-            // Simple Lua-like script interpreter
-            // This is a simplified version - real Lua would need a proper interpreter
-            const variables = {
+            // Full Seuntjie's DiceBot compatible variable set
+            const scriptVars = {
+                // Read-Write variables
+                nextbet: this.currentBet,
+                chance: parseFloat(document.getElementById('win-chance').value),
+                bethigh: document.getElementById('prediction').value === 'over',
+                
+                // Read-Only variables
                 balance: this.balance,
-                basebet: this.baseBet,
+                profit: this.balance - this.startingBalance,
+                currentstreak: this.currentStreak,
                 previousbet: this.currentBet,
+                previousprofit: won ? (this.currentBet * (98 / parseFloat(document.getElementById('win-chance').value) - 1)) : -this.currentBet,
                 win: won,
-                loss: !won,
-                nextbet: this.baseBet
+                losses: this.losses,
+                wins: this.wins,
+                totalbets: this.totalBets,
+                basebet: this.baseBet,
+                
+                // Additional useful variables
+                currentprofit: this.balance - this.startingBalance,
+                bets: this.totalBets,
+                numlosses: this.losses,
+                numwins: this.wins,
+                
+                // Helper functions
+                resetseed: () => { console.log('resetseed() called'); },
+                stop: () => { this.stopBot(); },
+                print: (msg) => { console.log('Script:', msg); }
             };
             
-            // Parse simple if-then-else statements
+            // Parse the script in a Lua-like manner
             const lines = script.split('\n');
-            let nextBet = this.baseBet;
+            let inIfBlock = false;
+            let ifCondition = false;
+            let inElseBlock = false;
             
             for (let line of lines) {
                 line = line.trim();
+                
+                // Skip comments and empty lines
                 if (line.startsWith('--') || line === '') continue;
                 
-                // Simple assignment parsing
-                if (line.includes('nextbet')) {
-                    const match = line.match(/nextbet\s*=\s*(.+)/);
-                    if (match) {
-                        let expression = match[1].trim();
-                        // Replace variables with word boundaries to avoid partial matches
-                        for (let [key, value] of Object.entries(variables)) {
-                            expression = expression.replace(new RegExp('\\b' + key + '\\b', 'g'), value);
+                // Handle if statements
+                if (line.startsWith('if ')) {
+                    const condition = line.substring(3, line.indexOf(' then')).trim();
+                    ifCondition = this.evaluateCondition(condition, scriptVars);
+                    inIfBlock = true;
+                    inElseBlock = false;
+                    continue;
+                }
+                
+                // Handle else statements
+                if (line === 'else') {
+                    inElseBlock = true;
+                    inIfBlock = false;
+                    continue;
+                }
+                
+                // Handle end statements
+                if (line === 'end') {
+                    inIfBlock = false;
+                    inElseBlock = false;
+                    continue;
+                }
+                
+                // Execute assignments based on conditions
+                const shouldExecute = (!inIfBlock && !inElseBlock) || 
+                                    (inIfBlock && ifCondition) || 
+                                    (inElseBlock && !ifCondition);
+                
+                if (shouldExecute) {
+                    // Handle assignments
+                    const assignMatch = line.match(/(\w+)\s*=\s*(.+)/);
+                    if (assignMatch) {
+                        const varName = assignMatch[1];
+                        let expression = assignMatch[2].trim();
+                        
+                        // Replace variables in expression
+                        for (let [key, value] of Object.entries(scriptVars)) {
+                            if (typeof value === 'number' || typeof value === 'boolean') {
+                                expression = expression.replace(new RegExp('\\b' + key + '\\b', 'g'), value);
+                            }
                         }
-                        // Safely evaluate mathematical expressions only
+                        
+                        // Evaluate the expression
                         try {
                             // Only allow mathematical operations and numbers
-                            if (/^[\d\s+\-*/.()]+$/.test(expression)) {
-                                nextBet = Function('"use strict"; return (' + expression + ')')();
-                            } else {
-                                console.error('Invalid expression - only mathematical operations allowed');
-                                nextBet = this.baseBet;
+                            if (/^[\d\s+\-*/.()<>=!&|truefalse]+$/.test(expression)) {
+                                const result = Function('"use strict"; return (' + expression + ')')();
+                                scriptVars[varName] = result;
                             }
                         } catch (e) {
                             console.error('Script evaluation error:', e);
-                            nextBet = this.baseBet;
                         }
                     }
+                    
+                    // Handle function calls
+                    if (line.includes('resetseed()')) scriptVars.resetseed();
+                    if (line.includes('stop()')) scriptVars.stop();
+                    const printMatch = line.match(/print\s*\(\s*["'](.+)["']\s*\)/);
+                    if (printMatch) scriptVars.print(printMatch[1]);
                 }
             }
             
-            return Math.min(nextBet, this.balance);
+            // Update bet settings based on script variables
+            if (scriptVars.chance !== parseFloat(document.getElementById('win-chance').value)) {
+                document.getElementById('win-chance').value = scriptVars.chance;
+                this.updatePayoutMultiplier();
+            }
+            
+            if (scriptVars.bethigh !== (document.getElementById('prediction').value === 'over')) {
+                document.getElementById('prediction').value = scriptVars.bethigh ? 'over' : 'under';
+            }
+            
+            return Math.min(Math.max(scriptVars.nextbet, 0.00000001), this.balance);
         } catch (error) {
             console.error('Custom script error:', error);
             return this.baseBet;
+        }
+    }
+    
+    evaluateCondition(condition, vars) {
+        try {
+            // Replace variables in condition
+            let expr = condition;
+            for (let [key, value] of Object.entries(vars)) {
+                if (typeof value === 'number' || typeof value === 'boolean') {
+                    expr = expr.replace(new RegExp('\\b' + key + '\\b', 'g'), value);
+                }
+            }
+            
+            // Safely evaluate boolean expression
+            if (/^[\d\s+\-*/.()<>=!&|truefalse]+$/.test(expr)) {
+                return Function('"use strict"; return (' + expr + ')')();
+            }
+            return false;
+        } catch (e) {
+            console.error('Condition evaluation error:', e);
+            return false;
         }
     }
 

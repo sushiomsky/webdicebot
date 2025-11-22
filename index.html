@@ -25,7 +25,6 @@
                         <option value="stake">Stake.com</option>
                         <option value="bitsler">Bitsler</option>
                         <option value="duckdice">DuckDice</option>
-                        <option value="999dice">999Dice</option>
                     </select>
                 </div>
                 
@@ -154,14 +153,17 @@
                     </div>
                 </div>
                 <div id="custom-script-config" class="custom-script-config" style="display: none;">
-                    <label for="lua-script">Custom Lua Script:</label>
-                    <textarea id="lua-script" rows="10" placeholder="-- Enter your Lua script here
--- Available variables: balance, basebet, previousbet, win, loss
--- Example:
-if win then
-    nextbet = basebet
-else
+                    <label for="lua-script">Custom Lua Script (Seuntjie's DiceBot Compatible):</label>
+                    <textarea id="lua-script" rows="12" placeholder="-- 100% Seuntjie's DiceBot Compatible
+-- Read-Write: nextbet, chance, bethigh
+-- Read-Only: balance, profit, currentstreak, previousbet, previousprofit, 
+--            win, losses, wins, totalbets, basebet
+-- Functions: stop(), resetseed(), print(msg)
+-- Example Martingale:
+if currentstreak < 0 then
     nextbet = previousbet * 2
+else
+    nextbet = basebet
 end"></textarea>
                 </div>
             </div>
