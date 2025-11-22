@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web DiceBot - Automated Dice Betting Bot</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 Web DiceBot</h1>
+            <p class="subtitle">Automated Cryptocurrency Dice Betting Bot</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Control Panel -->
+            <div class="panel control-panel">
+                <h2>Control Panel</h2>
+                <div class="form-group">
+                    <label for="site-select">Select Site:</label>
+                    <select id="site-select">
+                        <option value="simulation">Simulation Mode</option>
+                        <option value="primedice">PrimeDice</option>
+                        <option value="stake">Stake.com</option>
+                        <option value="bitsler">Bitsler</option>
+                        <option value="999dice">999Dice</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="balance">Starting Balance:</label>
+                    <input type="number" id="balance" value="1.00000000" step="0.00000001" min="0">
+                    <span class="unit">BTC</span>
+                </div>
+                <div class="status-display">
+                    <div class="status-item">
+                        <span class="label">Current Balance:</span>
+                        <span id="current-balance" class="value">1.00000000 BTC</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Total Profit:</span>
+                        <span id="total-profit" class="value profit-positive">0.00000000 BTC</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Total Bets:</span>
+                        <span id="total-bets" class="value">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Win Rate:</span>
+                        <span id="win-rate" class="value">0.00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Betting Configuration -->
+            <div class="panel betting-panel">
+                <h2>Betting Configuration</h2>
+                <div class="form-group">
+                    <label for="bet-amount">Base Bet Amount:</label>
+                    <input type="number" id="bet-amount" value="0.00000100" step="0.00000001" min="0.00000001">
+                    <span class="unit">BTC</span>
+                </div>
+                <div class="form-group">
+                    <label for="win-chance">Win Chance:</label>
+                    <input type="number" id="win-chance" value="49.50" step="0.01" min="0.01" max="98">
+                    <span class="unit">%</span>
+                </div>
+                <div class="form-group">
+                    <label for="prediction">Prediction:</label>
+                    <select id="prediction">
+                        <option value="over">Roll Over</option>
+                        <option value="under">Roll Under</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payout Multiplier:</label>
+                    <span id="payout-multiplier" class="value">2.00x</span>
+                </div>
+                <div class="form-group">
+                    <label for="strategy">Betting Strategy:</label>
+                    <select id="strategy">
+                        <option value="manual">Manual</option>
+                        <option value="martingale">Martingale</option>
+                        <option value="fibonacci">Fibonacci</option>
+                        <option value="dalembert">D'Alembert</option>
+                        <option value="labouchere">Labouchere</option>
+                        <option value="custom">Custom Script</option>
+                    </select>
+                </div>
+                <div id="strategy-config" class="strategy-config" style="display: none;">
+                    <div class="form-group">
+                        <label for="on-loss">On Loss:</label>
+                        <select id="on-loss">
+                            <option value="reset">Reset to Base</option>
+                            <option value="increase">Increase by %</option>
+                            <option value="multiply">Multiply by X</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="loss-value">Loss Value:</label>
+                        <input type="number" id="loss-value" value="2" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="on-win">On Win:</label>
+                        <select id="on-win">
+                            <option value="reset">Reset to Base</option>
+                            <option value="increase">Increase by %</option>
+                            <option value="multiply">Multiply by X</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="win-value">Win Value:</label>
+                        <input type="number" id="win-value" value="1" step="0.1" min="0">
+                    </div>
+                </div>
+                <div id="custom-script-config" class="custom-script-config" style="display: none;">
+                    <label for="lua-script">Custom Lua Script:</label>
+                    <textarea id="lua-script" rows="10" placeholder="-- Enter your Lua script here
+-- Available variables: balance, basebet, previousbet, win, loss
+-- Example:
+if win then
+    nextbet = basebet
+else
+    nextbet = previousbet * 2
+end"></textarea>
+                </div>
+            </div>
+
+            <!-- Stop Conditions -->
+            <div class="panel stop-conditions-panel">
+                <h2>Stop Conditions</h2>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stop-profit-enabled">
+                        Stop on Profit:
+                    </label>
+                    <input type="number" id="stop-profit" value="0.01" step="0.00000001" disabled>
+                    <span class="unit">BTC</span>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stop-loss-enabled">
+                        Stop on Loss:
+                    </label>
+                    <input type="number" id="stop-loss" value="0.01" step="0.00000001" disabled>
+                    <span class="unit">BTC</span>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stop-bets-enabled">
+                        Stop after Bets:
+                    </label>
+                    <input type="number" id="stop-bets" value="100" step="1" min="1" disabled>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="stop-streak-enabled">
+                        Stop on Win Streak:
+                    </label>
+                    <input type="number" id="stop-streak" value="5" step="1" min="1" disabled>
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="panel control-buttons-panel">
+                <h2>Controls</h2>
+                <div class="button-group">
+                    <button id="start-bot" class="btn btn-primary">Start Bot</button>
+                    <button id="stop-bot" class="btn btn-danger" disabled>Stop Bot (Ctrl+Shift+S)</button>
+                    <button id="place-bet" class="btn btn-secondary">Place Single Bet</button>
+                    <button id="reset-stats" class="btn btn-warning">Reset Statistics</button>
+                </div>
+            </div>
+
+            <!-- Statistics Panel -->
+            <div class="panel stats-panel">
+                <h2>Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Wins:</span>
+                        <span id="stat-wins" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Losses:</span>
+                        <span id="stat-losses" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Current Streak:</span>
+                        <span id="stat-streak" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Longest Win Streak:</span>
+                        <span id="stat-longest-win" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Longest Loss Streak:</span>
+                        <span id="stat-longest-loss" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Luck:</span>
+                        <span id="stat-luck" class="stat-value">100.00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Panel -->
+            <div class="panel chart-panel">
+                <h2>Profit Chart</h2>
+                <canvas id="profit-chart"></canvas>
+            </div>
+
+            <!-- Bet History -->
+            <div class="panel history-panel">
+                <h2>Bet History (Last 100)</h2>
+                <div class="table-container">
+                    <table id="bet-history">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Result</th>
+                                <th>Bet</th>
+                                <th>Roll</th>
+                                <th>Target</th>
+                                <th>Profit</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bet-history-body">
+                            <tr>
+                                <td colspan="7" class="no-data">No bets placed yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="panel settings-panel">
+                <h2>Settings</h2>
+                <div class="form-group">
+                    <label for="bet-speed">Bet Speed (ms):</label>
+                    <input type="number" id="bet-speed" value="100" step="10" min="10">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="sound-enabled" checked>
+                        Enable Sound Notifications
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="auto-scroll" checked>
+                        Auto-scroll History
+                    </label>
+                </div>
+                <div class="button-group">
+                    <button id="export-config" class="btn btn-secondary">Export Configuration</button>
+                    <button id="import-config" class="btn btn-secondary">Import Configuration</button>
+                    <input type="file" id="import-file" style="display: none;" accept=".json">
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>⚠️ This is a simulation tool for educational purposes. Gambling involves risk. Use responsibly.</p>
+            <p>Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> for emergency stop</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
