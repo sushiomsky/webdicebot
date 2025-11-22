@@ -511,7 +511,7 @@ class DiceBot {
                         // Evaluate the expression
                         try {
                             // Only allow mathematical operations and numbers
-                            if (/^[\d\s+\-*/.()<>=!&|truefalse]+$/.test(expression)) {
+                            if (/^[\d\s+\-*/.()<>=!&|(true)|(false)]+$/.test(expression)) {
                                 const result = Function('"use strict"; return (' + expression + ')')();
                                 scriptVars[varName] = result;
                             }
@@ -556,7 +556,7 @@ class DiceBot {
             }
             
             // Safely evaluate boolean expression
-            if (/^[\d\s+\-*/.()<>=!&|truefalse]+$/.test(expr)) {
+            if (/^[\d\s+\-*/.()<>=!&|(true)|(false)]+$/.test(expr)) {
                 return Function('"use strict"; return (' + expr + ')')();
             }
             return false;
