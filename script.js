@@ -19,6 +19,11 @@ class DiceBot {
         this.betTimeout = null;
         this.lastWin = false;
         
+        // Casino API integration
+        this.currentSite = 'simulation';
+        this.casinoAPI = null;
+        this.isConnected = false;
+        
         this.init();
     }
 
@@ -30,6 +35,15 @@ class DiceBot {
     }
 
     setupEventListeners() {
+        // Site selector
+        document.getElementById('site-select').addEventListener('change', (e) => {
+            this.handleSiteChange(e.target.value);
+        });
+
+        // API Connection buttons
+        document.getElementById('connect-api').addEventListener('click', () => this.connectToAPI());
+        document.getElementById('disconnect-api').addEventListener('click', () => this.disconnectFromAPI());
+
         // Strategy selector
         document.getElementById('strategy').addEventListener('change', (e) => {
             this.handleStrategyChange(e.target.value);
@@ -115,6 +129,113 @@ class DiceBot {
                     break;
             }
         }
+    }
+
+    handleSiteChange(site) {
+        this.currentSite = site;
+        const authPanel = document.getElementById('api-auth-panel');
+        const apiKeyAuth = document.getElementById('api-key-auth');
+        const usernameAuth = document.getElementById('username-auth');
+        
+        // Disconnect current API if connected
+        if (this.isConnected) {
+            this.disconnectFromAPI();
+        }
+        
+        if (site === 'simulation') {
+            authPanel.style.display = 'none';
+            document.getElementById('balance').disabled = false;
+        } else {
+            authPanel.style.display = 'block';
+            document.getElementById('balance').disabled = true;
+            
+            // Show appropriate auth method
+            if (site === 'stake' || site === 'bitsler') {
+                apiKeyAuth.style.display = 'block';
+                usernameAuth.style.display = 'none';
+            } else if (site === 'primedice' || site === '999dice') {
+                apiKeyAuth.style.display = 'none';
+                usernameAuth.style.display = 'block';
+            }
+        }
+    }
+
+    async connectToAPI() {
+        const site = this.currentSite;
+        
+        if (site === 'simulation') {
+            return;
+        }
+        
+        try {
+            // Create API instance
+            this.casinoAPI = createCasinoAPI(site);
+            
+            // Get credentials
+            let credentials = {};
+            if (site === 'stake' || site === 'bitsler') {
+                credentials.apiKey = document.getElementById('api-key').value;
+                if (!credentials.apiKey) {
+                    this.showNotification('Please enter your API key', 'error');
+                    return;
+                }
+            } else {
+                credentials.username = document.getElementById('api-username').value;
+                credentials.password = document.getElementById('api-password').value;
+                if (!credentials.username || !credentials.password) {
+                    this.showNotification('Please enter username and password', 'error');
+                    return;
+                }
+            }
+            
+            // Attempt authentication
+            this.showNotification('Connecting to ' + site + '...', 'warning');
+            const result = await this.casinoAPI.authenticate(credentials);
+            
+            if (result.success) {
+                this.isConnected = true;
+                this.updateAPIStatus('connected', result.message);
+                
+                // Fetch real balance
+                const balance = await this.casinoAPI.getBalance();
+                if (balance !== null) {
+                    this.balance = balance;
+                    this.startingBalance = balance;
+                    document.getElementById('balance').value = balance.toFixed(8);
+                    this.updateDisplay();
+                }
+                
+                document.getElementById('connect-api').style.display = 'none';
+                document.getElementById('disconnect-api').style.display = 'inline-block';
+                this.showNotification('Successfully connected to ' + site, 'success');
+            } else {
+                this.updateAPIStatus('disconnected', 'Connection failed');
+                this.showNotification('Failed to connect: ' + result.message, 'error');
+            }
+        } catch (error) {
+            this.updateAPIStatus('disconnected', 'Error');
+            this.showNotification('Error connecting: ' + error.message, 'error');
+            console.error('API connection error:', error);
+        }
+    }
+
+    disconnectFromAPI() {
+        if (this.casinoAPI) {
+            this.casinoAPI.disconnect();
+            this.casinoAPI = null;
+        }
+        
+        this.isConnected = false;
+        this.updateAPIStatus('disconnected', 'Not Connected');
+        document.getElementById('connect-api').style.display = 'inline-block';
+        document.getElementById('disconnect-api').style.display = 'none';
+        this.showNotification('Disconnected from casino', 'success');
+    }
+
+    updateAPIStatus(status, message) {
+        const statusElement = document.getElementById('api-status');
+        statusElement.textContent = message;
+        statusElement.className = 'api-status ' + status;
     }
 
     updatePayoutMultiplier() {
@@ -353,19 +474,53 @@ class DiceBot {
         const prediction = document.getElementById('prediction').value;
         const payout = 98 / winChance;
 
-        const roll = this.rollDice();
-        const won = this.checkWin(roll, winChance, prediction);
-        
-        let profit;
+        let roll, won, profit;
+
+        // Use real casino API if connected
+        if (this.isConnected && this.casinoAPI) {
+            try {
+                const result = await this.casinoAPI.placeBet(this.currentBet, winChance, prediction);
+                
+                if (!result.success) {
+                    this.showNotification('Bet failed: ' + result.message, 'error');
+                    this.stopBot();
+                    return;
+                }
+                
+                roll = result.roll;
+                won = result.won;
+                profit = result.profit;
+                
+                // Update balance from API
+                const newBalance = await this.casinoAPI.getBalance();
+                if (newBalance !== null) {
+                    this.balance = newBalance;
+                }
+            } catch (error) {
+                this.showNotification('API error: ' + error.message, 'error');
+                this.stopBot();
+                return;
+            }
+        } else {
+            // Simulation mode
+            roll = this.rollDice();
+            won = this.checkWin(roll, winChance, prediction);
+            
+            if (won) {
+                profit = this.currentBet * (payout - 1);
+                this.balance += profit;
+            } else {
+                profit = -this.currentBet;
+                this.balance += profit;
+            }
+        }
+
+        // Update statistics
         if (won) {
-            profit = this.currentBet * (payout - 1);
-            this.balance += profit;
             this.wins++;
             this.currentStreak = this.lastWin ? this.currentStreak + 1 : 1;
             this.longestWinStreak = Math.max(this.longestWinStreak, this.currentStreak);
         } else {
-            profit = -this.currentBet;
-            this.balance += profit;
             this.losses++;
             this.currentStreak = !this.lastWin ? this.currentStreak - 1 : -1;
             this.longestLossStreak = Math.max(this.longestLossStreak, Math.abs(this.currentStreak));

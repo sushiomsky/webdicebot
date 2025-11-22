@@ -1,6 +1,6 @@
 # Web DiceBot 🎲
 
-A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's DiceBot](https://bot.seuntjie.com/GettingStarted.aspx). This is a fully-featured simulation tool for automated dice betting strategies.
+A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's DiceBot](https://bot.seuntjie.com/GettingStarted.aspx). Features automated betting strategies, real casino API integration, and simulation mode for safe testing.
 
 ![Web DiceBot Screenshot](https://github.com/user-attachments/assets/84b87dbc-f45c-446e-9cc1-ee032f99ecfc)
 
@@ -10,6 +10,7 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - **Manual Betting** - Place single bets manually
 - **Automated Betting** - Run continuous betting with strategies
 - **Simulation Mode** - Safe testing without real money
+- **Real Casino Integration** - Connect to Stake, PrimeDice, Bitsler, 999Dice
 
 ### 📊 Betting Strategies
 - **Martingale** - Double bet after loss, reset after win
@@ -51,6 +52,16 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - Responsive design
 - Multiple site selection
 
+### 🔌 Casino API Integration
+- **Stake.com** - API Key authentication
+- **PrimeDice** - Username/Password or API Key
+- **Bitsler** - API Key authentication
+- **999Dice** - Username/Password authentication
+- Real-time balance synchronization
+- Provably fair bet verification
+
+See [API_INTEGRATION.md](API_INTEGRATION.md) for detailed setup instructions.
+
 ## Getting Started
 
 ### Installation
@@ -71,11 +82,20 @@ python3 -m http.server 8080
 
 ### Quick Start
 
+#### Simulation Mode
 1. **Set Your Balance** - Enter starting balance in BTC
 2. **Configure Bet** - Set base bet amount and win chance
 3. **Choose Strategy** - Select from predefined strategies or create custom
 4. **Set Stop Conditions** - Define when to stop betting
 5. **Start Bot** - Click "Start Bot" to begin automated betting
+
+#### Real Casino Mode
+1. **Select Site** - Choose a casino from the dropdown (Stake, PrimeDice, etc.)
+2. **Enter Credentials** - Provide your API key or username/password
+3. **Connect** - Click "Connect" to authenticate
+4. **Configure & Start** - Set up your strategy and start betting with real money
+
+⚠️ **Warning**: Real casino mode uses actual cryptocurrency. Always test strategies in simulation mode first!
 
 ### Usage Examples
 
