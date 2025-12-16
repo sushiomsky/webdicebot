@@ -1,4 +1,7 @@
 // DuckDice API Implementation
+// Standalone version for testing and direct use
+// Note: A similar implementation exists in casino-api.js that extends CasinoAPI
+// This standalone version is used for the test suite and can be used independently
 // Based on official DuckDice Bot API documentation and Seuntjie's DiceBot implementation
 
 class DuckDiceAPI {

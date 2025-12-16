@@ -525,12 +525,18 @@ class DuckDiceAPI extends CasinoAPI {
         const supportedCurrencies = ['BTC', 'ETH', 'LTC', 'DOGE', 'DASH', 'BCH', 'XMR', 'XRP', 'ETC', 'BTG', 'XLM', 'ZEC', 'USDT', 'DTP'];
         if (supportedCurrencies.includes(currency.toUpperCase())) {
             this.currency = currency.toUpperCase();
+            return true;
+        } else {
+            throw new Error(`Unsupported currency: ${currency}. Supported: ${supportedCurrencies.join(', ')}`);
         }
     }
 
     setMode(mode) {
         if (mode === 1 || mode === 2) {
             this.mode = mode;
+            return true;
+        } else {
+            throw new Error('Invalid mode. Use 1 for main balance or 2 for faucet balance');
         }
     }
 
