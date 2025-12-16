@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuckDice API Test Suite</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            margin: 15px 0;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            background: #f9f9f9;
+        }
+        .test-case h3 {
+            margin: 0 0 10px 0;
+            color: #2196F3;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-result.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .api-config {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .api-config input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            flex: 1;
+            background: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-box h3 {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-box.passed .value {
+            color: #4CAF50;
+        }
+        .stat-box.failed .value {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>🦆 DuckDice API Test Suite</h1>
+    
+    <div class="api-config">
+        <h2>API Configuration</h2>
+        <label>API Key:</label>
+        <input type="text" id="api-key" value="8f9a51ce-af2d-11f0-a08a-524acb1a7d8c" placeholder="Enter API Key">
+        <label>API Base URL:</label>
+        <input type="text" id="api-url" value="https://duckdice.io/api" readonly>
+        <label>API Version:</label>
+        <input type="text" id="api-version" value="1.1.1" readonly>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <h3>Total Tests</h3>
+            <div class="value" id="total-tests">0</div>
+        </div>
+        <div class="stat-box passed">
+            <h3>Passed</h3>
+            <div class="value" id="passed-tests">0</div>
+        </div>
+        <div class="stat-box failed">
+            <h3>Failed</h3>
+            <div class="value" id="failed-tests">0</div>
+        </div>
+    </div>
+
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <div class="test-section">
+        <h2>Authentication Tests</h2>
+        <button onclick="testAuthentication()">Test Authentication</button>
+        <div id="auth-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Balance Tests</h2>
+        <button onclick="testGetBalance()">Test Get Balance</button>
+        <div id="balance-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Statistics Tests</h2>
+        <button onclick="testGetStatistics()">Test Get Statistics</button>
+        <div id="stats-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Seed Randomization Tests</h2>
+        <button onclick="testSeedRandomization()">Test Seed Randomization</button>
+        <div id="seed-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Betting Tests</h2>
+        <button onclick="testPlaceBet()">Test Place Bet (Small Amount)</button>
+        <div id="bet-results"></div>
+    </div>
+
+    <script src="duckdice-api.js"></script>
+    <script>
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+
+        function updateStats() {
+            document.getElementById('total-tests').textContent = totalTests;
+            document.getElementById('passed-tests').textContent = passedTests;
+            document.getElementById('failed-tests').textContent = failedTests;
+        }
+
+        function addTestResult(containerId, testName, success, message, data = null) {
+            totalTests++;
+            if (success) {
+                passedTests++;
+            } else {
+                failedTests++;
+            }
+            updateStats();
+
+            const container = document.getElementById(containerId);
+            const testCase = document.createElement('div');
+            testCase.className = 'test-case';
+            
+            const result = document.createElement('div');
+            result.className = `test-result ${success ? 'success' : 'error'}`;
+            
+            let html = `<strong>${success ? '✅' : '❌'} ${testName}</strong><br>${message}`;
+            
+            if (data) {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            result.innerHTML = html;
+            testCase.appendChild(result);
+            container.appendChild(testCase);
+        }
+
+        function clearResults() {
+            const resultContainers = ['auth-results', 'balance-results', 'stats-results', 'seed-results', 'bet-results'];
+            resultContainers.forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            totalTests = 0;
+            passedTests = 0;
+            failedTests = 0;
+            updateStats();
+        }
+
+        async function testAuthentication() {
+            const apiKey = document.getElementById('api-key').value;
+            const api = new DuckDiceAPI();
+            
+            try {
+                const result = await api.authenticate({ apiKey });
+                if (result.success) {
+                    addTestResult('auth-results', 'Authentication', true, 'Successfully authenticated with DuckDice API', result);
+                } else {
+                    addTestResult('auth-results', 'Authentication', false, result.message, result);
+                }
+            } catch (error) {
+                addTestResult('auth-results', 'Authentication', false, error.message, { error: error.toString() });
+            }
+        }
+
+        async function testGetBalance() {
+            const apiKey = document.getElementById('api-key').value;
+            const api = new DuckDiceAPI();
+            
+            try {
+                api.apiKey = apiKey;
+                api.authenticated = true;
+                
+                const balance = await api.getBalance();
+                if (balance !== null && balance !== undefined) {
+                    addTestResult('balance-results', 'Get Balance', true, `Current balance retrieved: ${balance} BTC`, { balance });
+                } else {
+                    addTestResult('balance-results', 'Get Balance', false, 'Failed to retrieve balance');
+                }
+            } catch (error) {
+                addTestResult('balance-results', 'Get Balance', false, error.message, { error: error.toString() });
+            }
+        }
+
+        async function testGetStatistics() {
+            const apiKey = document.getElementById('api-key').value;
+            const api = new DuckDiceAPI();
+            
+            try {
+                api.apiKey = apiKey;
+                api.authenticated = true;
+                
+                const stats = await api.getStatistics();
+                if (stats && stats.bets !== undefined) {
+                    addTestResult('stats-results', 'Get Statistics', true, 'Statistics retrieved successfully', stats);
+                } else {
+                    addTestResult('stats-results', 'Get Statistics', false, 'Failed to retrieve statistics');
+                }
+            } catch (error) {
+                addTestResult('stats-results', 'Get Statistics', false, error.message, { error: error.toString() });
+            }
+        }
+
+        async function testSeedRandomization() {
+            const apiKey = document.getElementById('api-key').value;
+            const api = new DuckDiceAPI();
+            
+            try {
+                api.apiKey = apiKey;
+                api.authenticated = true;
+                
+                const seed = await api.randomizeSeed();
+                if (seed && seed.clientSeed) {
+                    addTestResult('seed-results', 'Seed Randomization', true, 'Seed randomized successfully', seed);
+                } else {
+                    addTestResult('seed-results', 'Seed Randomization', false, 'Failed to randomize seed');
+                }
+            } catch (error) {
+                addTestResult('seed-results', 'Seed Randomization', false, error.message, { error: error.toString() });
+            }
+        }
+
+        async function testPlaceBet() {
+            const apiKey = document.getElementById('api-key').value;
+            const api = new DuckDiceAPI();
+            
+            try {
+                api.apiKey = apiKey;
+                api.authenticated = true;
+                
+                // Place a very small bet to test
+                const result = await api.placeBet(0.00000001, 50, 'over');
+                if (result.success) {
+                    addTestResult('bet-results', 'Place Bet', true, `Bet placed successfully. Roll: ${result.roll}, Won: ${result.won}`, result);
+                } else {
+                    addTestResult('bet-results', 'Place Bet', false, result.message || 'Failed to place bet', result);
+                }
+            } catch (error) {
+                addTestResult('bet-results', 'Place Bet', false, error.message, { error: error.toString() });
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            await testAuthentication();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testGetBalance();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testGetStatistics();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testSeedRandomization();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Uncomment if you want to test betting with real money
+            // await testPlaceBet();
+        }
+    </script>
+</body>
+</html>

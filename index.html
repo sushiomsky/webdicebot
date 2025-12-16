@@ -21,7 +21,6 @@
                     <label for="site-select">Select Site:</label>
                     <select id="site-select">
                         <option value="simulation">Simulation Mode</option>
-                        <option value="primedice">PrimeDice</option>
                         <option value="stake">Stake.com</option>
                         <option value="bitsler">Bitsler</option>
                         <option value="duckdice">DuckDice</option>
@@ -35,23 +34,12 @@
                         <div id="api-status" class="api-status disconnected">Not Connected</div>
                     </div>
                     
-                    <!-- Stake/Bitsler API Key -->
+                    <!-- API Key Authentication -->
                     <div id="api-key-auth" class="auth-method" style="display: none;">
                         <div class="form-group">
                             <label for="api-key">API Key:</label>
                             <input type="password" id="api-key" placeholder="Enter your API key">
-                        </div>
-                    </div>
-                    
-                    <!-- PrimeDice/999Dice Username/Password -->
-                    <div id="username-auth" class="auth-method" style="display: none;">
-                        <div class="form-group">
-                            <label for="api-username">Username:</label>
-                            <input type="text" id="api-username" placeholder="Enter username">
-                        </div>
-                        <div class="form-group">
-                            <label for="api-password">Password:</label>
-                            <input type="password" id="api-password" placeholder="Enter password">
+                            <small class="help-text">Your API key is stored only in browser memory and never sent to third parties</small>
                         </div>
                     </div>
                     
