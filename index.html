@@ -18,40 +18,45 @@
             <div class="panel control-panel">
                 <h2>Control Panel</h2>
                 <div class="form-group">
-                    <label for="site-select">Select Site:</label>
+                    <label for="site-select">
+                        Select Site:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Choose a casino to connect with real money, or use Simulation Mode for safe testing without risk</span>
+                        </span>
+                    </label>
                     <select id="site-select">
                         <option value="simulation">Simulation Mode</option>
-                        <option value="primedice">PrimeDice</option>
                         <option value="stake">Stake.com</option>
                         <option value="bitsler">Bitsler</option>
                         <option value="duckdice">DuckDice</option>
                     </select>
+                    <small class="help-text">Start with Simulation Mode to test strategies safely</small>
                 </div>
                 
                 <!-- API Authentication Panel -->
                 <div id="api-auth-panel" style="display: none;">
+                    <div class="info-badge">
+                        <span class="info-badge-icon">🔐</span>
+                        <span>Connect to a real casino using your API key. Your key is stored only in browser memory and never shared.</span>
+                    </div>
                     <div class="form-group">
                         <label>API Authentication</label>
                         <div id="api-status" class="api-status disconnected">Not Connected</div>
                     </div>
                     
-                    <!-- Stake/Bitsler API Key -->
+                    <!-- API Key Authentication -->
                     <div id="api-key-auth" class="auth-method" style="display: none;">
                         <div class="form-group">
-                            <label for="api-key">API Key:</label>
+                            <label for="api-key">
+                                API Key:
+                                <span class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">Get your API key from the casino's settings page. It allows secure automated betting without sharing your password.</span>
+                                </span>
+                            </label>
                             <input type="password" id="api-key" placeholder="Enter your API key">
-                        </div>
-                    </div>
-                    
-                    <!-- PrimeDice/999Dice Username/Password -->
-                    <div id="username-auth" class="auth-method" style="display: none;">
-                        <div class="form-group">
-                            <label for="api-username">Username:</label>
-                            <input type="text" id="api-username" placeholder="Enter username">
-                        </div>
-                        <div class="form-group">
-                            <label for="api-password">Password:</label>
-                            <input type="password" id="api-password" placeholder="Enter password">
+                            <small class="help-text important">Your API key is stored only in browser memory and never sent to third parties</small>
                         </div>
                     </div>
                     
@@ -61,9 +66,16 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="balance">Starting Balance:</label>
+                    <label for="balance">
+                        Starting Balance:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Set your initial balance for simulation mode. This will be your real balance when connected to a casino.</span>
+                        </span>
+                    </label>
                     <input type="number" id="balance" value="1.00000000" step="0.00000001" min="0">
                     <span class="unit">BTC</span>
+                    <small class="help-text">Locked when connected to a real casino</small>
                 </div>
                 <div class="status-display">
                     <div class="status-item">
@@ -89,17 +101,37 @@
             <div class="panel betting-panel">
                 <h2>Betting Configuration</h2>
                 <div class="form-group">
-                    <label for="bet-amount">Base Bet Amount:</label>
+                    <label for="bet-amount">
+                        Base Bet Amount:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">The starting bet amount. Strategies will adjust this value based on wins/losses.</span>
+                        </span>
+                    </label>
                     <input type="number" id="bet-amount" value="0.00000100" step="0.00000001" min="0.00000001">
                     <span class="unit">BTC</span>
+                    <small class="help-text">Start small and test your strategy first</small>
                 </div>
                 <div class="form-group">
-                    <label for="win-chance">Win Chance:</label>
+                    <label for="win-chance">
+                        Win Chance:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Probability of winning (0.01% to 98%). Higher chance = lower payout multiplier.</span>
+                        </span>
+                    </label>
                     <input type="number" id="win-chance" value="49.50" step="0.01" min="0.01" max="98">
                     <span class="unit">%</span>
+                    <small class="help-text">49.50% is standard 2x multiplier</small>
                 </div>
                 <div class="form-group">
-                    <label for="prediction">Prediction:</label>
+                    <label for="prediction">
+                        Prediction:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Choose whether to bet on rolling over or under the target number.</span>
+                        </span>
+                    </label>
                     <select id="prediction">
                         <option value="over">Roll Over</option>
                         <option value="under">Roll Under</option>
@@ -116,15 +148,22 @@
                     <span id="payout-multiplier" class="value">2.00x</span>
                 </div>
                 <div class="form-group">
-                    <label for="strategy">Betting Strategy:</label>
+                    <label for="strategy">
+                        Betting Strategy:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Choose how your bet amount changes after wins and losses. Martingale doubles on loss, Fibonacci follows the sequence, etc.</span>
+                        </span>
+                    </label>
                     <select id="strategy">
-                        <option value="manual">Manual</option>
-                        <option value="martingale">Martingale</option>
-                        <option value="fibonacci">Fibonacci</option>
-                        <option value="dalembert">D'Alembert</option>
-                        <option value="labouchere">Labouchere</option>
-                        <option value="custom">Custom Script</option>
+                        <option value="manual">Manual (No Auto-Strategy)</option>
+                        <option value="martingale">Martingale (Double on Loss)</option>
+                        <option value="fibonacci">Fibonacci (Sequence Progression)</option>
+                        <option value="dalembert">D'Alembert (Gradual Increase)</option>
+                        <option value="labouchere">Labouchere (Advanced)</option>
+                        <option value="custom">Custom Script (Lua)</option>
                     </select>
+                    <small class="help-text">Manual = place bets one at a time</small>
                 </div>
                 <div id="strategy-config" class="strategy-config" style="display: none;">
                     <div class="form-group">
@@ -171,10 +210,18 @@ end"></textarea>
             <!-- Stop Conditions -->
             <div class="panel stop-conditions-panel">
                 <h2>Stop Conditions</h2>
+                <div class="info-badge">
+                    <span class="info-badge-icon">🛑</span>
+                    <span>Set limits to protect your balance. The bot will stop automatically when any enabled condition is met.</span>
+                </div>
                 <div class="form-group">
                     <label>
                         <input type="checkbox" id="stop-profit-enabled">
                         Stop on Profit:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Stop betting when you reach this profit target. Recommended to lock in gains.</span>
+                        </span>
                     </label>
                     <input type="number" id="stop-profit" value="0.01" step="0.00000001" disabled>
                     <span class="unit">BTC</span>
@@ -183,6 +230,10 @@ end"></textarea>
                     <label>
                         <input type="checkbox" id="stop-loss-enabled">
                         Stop on Loss:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Stop betting when you lose this amount. Essential for risk management.</span>
+                        </span>
                     </label>
                     <input type="number" id="stop-loss" value="0.01" step="0.00000001" disabled>
                     <span class="unit">BTC</span>
@@ -191,6 +242,10 @@ end"></textarea>
                     <label>
                         <input type="checkbox" id="stop-bets-enabled">
                         Stop after Bets:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Stop after placing this many bets, regardless of profit/loss.</span>
+                        </span>
                     </label>
                     <input type="number" id="stop-bets" value="100" step="1" min="1" disabled>
                 </div>
@@ -198,6 +253,10 @@ end"></textarea>
                     <label>
                         <input type="checkbox" id="stop-streak-enabled">
                         Stop on Win Streak:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Stop after winning this many times in a row.</span>
+                        </span>
                     </label>
                     <input type="number" id="stop-streak" value="5" step="1" min="1" disabled>
                 </div>
@@ -205,6 +264,10 @@ end"></textarea>
                     <label>
                         <input type="checkbox" id="stop-loss-streak-enabled">
                         Stop on Loss Streak:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Stop after losing this many times in a row. Helps prevent emotional betting.</span>
+                        </span>
                     </label>
                     <input type="number" id="stop-loss-streak" value="5" step="1" min="1" disabled>
                 </div>
@@ -212,6 +275,10 @@ end"></textarea>
                     <label>
                         <input type="checkbox" id="stop-balance-enabled">
                         Stop on Balance:
+                        <span class="tooltip-container">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Stop when your balance reaches this amount (can be higher or lower than starting balance).</span>
+                        </span>
                     </label>
                     <input type="number" id="stop-balance" value="1.00000000" step="0.00000001" disabled>
                     <span class="unit">BTC</span>

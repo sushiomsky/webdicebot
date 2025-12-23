@@ -7,9 +7,8 @@ This document describes how to integrate Web DiceBot with real cryptocurrency di
 Web DiceBot now supports integration with the following dice casinos:
 
 - **Stake.com** - API Key authentication
-- **PrimeDice** - Username/Password or API Key authentication
 - **Bitsler** - API Key authentication
-- **DuckDice** - API Key authentication
+- **DuckDice** - API Key authentication with full API support
 
 ## Getting Started
 
@@ -25,19 +24,11 @@ In the Control Panel, use the "Select Site" dropdown to choose your preferred ca
 3. Create a new API key
 4. Copy the API key for use in Web DiceBot
 
-#### PrimeDice
-**Option A: API Key**
-1. Log in to PrimeDice
-2. Navigate to Settings → API
-3. Generate an API key
-
-**Option B: Username/Password**
-- Use your regular PrimeDice account credentials
-
 #### Bitsler
 1. Log in to Bitsler
 2. Go to Settings → API Keys
 3. Create a new API key with dice betting permissions
+4. Copy the API key for use in Web DiceBot
 
 #### DuckDice
 1. Log in to DuckDice
@@ -85,9 +76,8 @@ The integration uses a modular architecture with:
 
 **Casino-Specific Classes:**
 - `StakeAPI` - Implements Stake.com GraphQL API
-- `PrimeDiceAPI` - Implements PrimeDice REST API
 - `BitslerAPI` - Implements Bitsler REST API
-- `DuckDiceAPI` - Implements DuckDice REST API
+- `DuckDiceAPI` - Implements DuckDice REST API with complete endpoint support (v1.1.1)
 
 **Factory Function: `createCasinoAPI(siteName)`**
 - Creates appropriate API instance based on selected site
@@ -129,7 +119,6 @@ Due to browser security (CORS), direct API calls may be blocked by some casinos.
 
 Different casinos have different rate limits:
 - **Stake.com**: ~10 requests/second
-- **PrimeDice**: ~5 requests/second
 - **Bitsler**: ~3 requests/second
 - **DuckDice**: ~3 requests/second
 
@@ -168,13 +157,13 @@ The bot respects these limits by using the "Bet Speed" setting.
 // 5. Configure strategy and click "Start Bot"
 ```
 
-### Automated Betting with PrimeDice
+### Automated Betting with DuckDice
 
 ```javascript
 // User workflow:
-// 1. Select "PrimeDice"
-// 2. Enter username and password
-// 3. Connect
+// 1. Select "DuckDice" from dropdown
+// 2. Enter API key
+// 3. Click "Connect"
 // 4. Select "Martingale" strategy
 // 5. Set stop conditions
 // 6. Start automated betting

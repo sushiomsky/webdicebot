@@ -1,252 +1,14 @@
-// Casino API Integration Module
-// Provides API adapters for different dice casino platforms
+// DuckDice API Implementation
+// Standalone version for testing and direct use
+// Note: A similar implementation exists in casino-api.js that extends CasinoAPI
+// This standalone version is used for the test suite and can be used independently
+// Based on official DuckDice Bot API documentation and Seuntjie's DiceBot implementation
 
-class CasinoAPI {
-    constructor(siteName) {
-        this.siteName = siteName;
+class DuckDiceAPI {
+    constructor() {
+        this.siteName = 'duckdice';
         this.apiKey = null;
-        this.accessToken = null;
         this.authenticated = false;
-    }
-
-    async authenticate(credentials) {
-        throw new Error('authenticate() must be implemented by subclass');
-    }
-
-    async placeBet(amount, winChance, prediction) {
-        throw new Error('placeBet() must be implemented by subclass');
-    }
-
-    async getBalance() {
-        throw new Error('getBalance() must be implemented by subclass');
-    }
-
-    disconnect() {
-        this.authenticated = false;
-        this.apiKey = null;
-        this.accessToken = null;
-    }
-}
-
-// Stake.com API Integration
-class StakeAPI extends CasinoAPI {
-    constructor() {
-        super('stake');
-        this.baseURL = 'https://api.stake.com';
-        this.graphqlURL = 'https://stake.com/_api/graphql';
-    }
-
-    async authenticate(credentials) {
-        try {
-            // Stake uses API keys for authentication
-            this.apiKey = credentials.apiKey;
-            
-            // Verify the API key by fetching user balance
-            const balance = await this.getBalance();
-            if (balance !== null) {
-                this.authenticated = true;
-                return { success: true, message: 'Connected to Stake.com' };
-            }
-            return { success: false, message: 'Invalid API key' };
-        } catch (error) {
-            return { success: false, message: error.message };
-        }
-    }
-
-    async getBalance() {
-        try {
-            const query = `
-                query UserBalances {
-                    user {
-                        balances {
-                            available { amount currency }
-                        }
-                    }
-                }
-            `;
-
-            const response = await fetch(this.graphqlURL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-access-token': this.apiKey
-                },
-                body: JSON.stringify({ query })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.data && data.data.user && data.data.user.balances) {
-                // Return BTC balance
-                const btcBalance = data.data.user.balances.find(b => 
-                    b.available.currency === 'btc'
-                );
-                return btcBalance ? parseFloat(btcBalance.available.amount) : 0;
-            }
-            return null;
-        } catch (error) {
-            console.error('Stake getBalance error:', error);
-            throw error;
-        }
-    }
-
-    async placeBet(amount, winChance, prediction) {
-        try {
-            const mutation = `
-                mutation DiceBet($amount: Float!, $target: Float!, $condition: String!) {
-                    diceBet(amount: $amount, target: $target, condition: $condition) {
-                        id
-                        result
-                        payout
-                        profit
-                    }
-                }
-            `;
-
-            const target = prediction === 'over' ? (100 - winChance) : winChance;
-            const condition = prediction === 'over' ? 'above' : 'below';
-
-            const response = await fetch(this.graphqlURL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-access-token': this.apiKey
-                },
-                body: JSON.stringify({
-                    query: mutation,
-                    variables: {
-                        amount: amount,
-                        target: target,
-                        condition: condition
-                    }
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.data && data.data.diceBet) {
-                const bet = data.data.diceBet;
-                return {
-                    success: true,
-                    roll: bet.result,
-                    won: bet.profit > 0,
-                    profit: bet.profit,
-                    payout: bet.payout
-                };
-            }
-
-            return { success: false, message: 'Bet placement failed' };
-        } catch (error) {
-            console.error('Stake placeBet error:', error);
-            return { success: false, message: error.message };
-        }
-    }
-}
-
-// PrimeDice removed as requested
-
-// Bitsler API Integration
-class BitslerAPI extends CasinoAPI {
-    constructor() {
-        super('bitsler');
-        this.baseURL = 'https://www.bitsler.com/api';
-    }
-
-    async authenticate(credentials) {
-        try {
-            this.apiKey = credentials.apiKey;
-            
-            // Verify API key
-            const balance = await this.getBalance();
-            if (balance !== null) {
-                this.authenticated = true;
-                return { success: true, message: 'Connected to Bitsler' };
-            }
-            return { success: false, message: 'Invalid API key' };
-        } catch (error) {
-            return { success: false, message: error.message };
-        }
-    }
-
-    async getBalance() {
-        try {
-            const response = await fetch(`${this.baseURL}/balance`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.balance && data.balance.btc) {
-                return parseFloat(data.balance.btc);
-            }
-            return null;
-        } catch (error) {
-            console.error('Bitsler getBalance error:', error);
-            throw error;
-        }
-    }
-
-    async placeBet(amount, winChance, prediction) {
-        try {
-            const response = await fetch(`${this.baseURL}/dice/bet`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    amount: amount,
-                    chance: winChance,
-                    over: prediction === 'over',
-                    currency: 'btc'
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.result) {
-                return {
-                    success: true,
-                    roll: data.result.roll,
-                    won: data.result.win,
-                    profit: data.result.profit,
-                    payout: data.result.payout
-                };
-            }
-
-            return { success: false, message: 'Bet placement failed' };
-        } catch (error) {
-            console.error('Bitsler placeBet error:', error);
-            return { success: false, message: error.message };
-        }
-    }
-}
-
-// DuckDice API Integration - Complete Implementation
-// Based on official DuckDice Bot API and Seuntjie's DiceBot
-class DuckDiceAPI extends CasinoAPI {
-    constructor() {
-        super('duckdice');
         this.baseURL = 'https://duckdice.io/api';
         this.apiVersion = '1.1.1';
         this.currentSeed = null;
@@ -254,16 +16,21 @@ class DuckDiceAPI extends CasinoAPI {
         this.mode = 1; // 1 = main balance, 2 = faucet balance
     }
 
+    /**
+     * Authenticate with the DuckDice API using an API key
+     * @param {Object} credentials - { apiKey: string }
+     * @returns {Promise<Object>} { success: boolean, message: string }
+     */
     async authenticate(credentials) {
         try {
             this.apiKey = credentials.apiKey;
             
-            // Verify API key by fetching user balance
+            // Verify the API key by fetching user balance
             const balance = await this.getBalance();
             if (balance !== null && balance !== undefined) {
                 this.authenticated = true;
                 
-                // Fetch initial seed
+                // Also fetch initial seed
                 try {
                     this.currentSeed = await this.getSeed();
                 } catch (e) {
@@ -279,6 +46,10 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
+    /**
+     * Get user balance for the current currency
+     * @returns {Promise<number|null>} Balance in BTC or null on error
+     */
     async getBalance() {
         try {
             const url = `${this.baseURL}/load/${this.currency}?api_key=${this.apiKey}&api_version=${this.apiVersion}`;
@@ -310,6 +81,10 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
+    /**
+     * Get user statistics for the current currency
+     * @returns {Promise<Object>} Statistics object with bets, wins, profit, volume
+     */
     async getStatistics() {
         try {
             const url = `${this.baseURL}/stat/${this.currency}?api_key=${this.apiKey}&api_version=${this.apiVersion}`;
@@ -343,6 +118,10 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
+    /**
+     * Get current seed information
+     * @returns {Promise<Object>} Seed object with clientSeed, serverSeedHash, nonce
+     */
     async getSeed() {
         try {
             const url = `${this.baseURL}/randomize?api_key=${this.apiKey}&api_version=${this.apiVersion}`;
@@ -374,6 +153,11 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
+    /**
+     * Randomize the client seed
+     * @param {string} [customSeed] - Optional custom client seed
+     * @returns {Promise<Object>} New seed information
+     */
     async randomizeSeed(customSeed) {
         try {
             // Generate random client seed if not provided
@@ -419,14 +203,21 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
-    async placeBet(amount, winChance, prediction) {
+    /**
+     * Place a bet on DuckDice
+     * @param {number} amount - Bet amount in BTC
+     * @param {number} chance - Win chance percentage (0.01 - 98)
+     * @param {string} prediction - 'over' or 'under'
+     * @returns {Promise<Object>} Bet result
+     */
+    async placeBet(amount, chance, prediction) {
         try {
             const isHigh = prediction === 'over';
             
             const betData = {
                 amount: amount.toFixed(8),
                 symbol: this.currency,
-                chance: parseFloat(winChance.toFixed(2)),
+                chance: parseFloat(chance.toFixed(2)),
                 isHigh: isHigh,
                 faucet: this.mode === 2
             };
@@ -469,6 +260,7 @@ class DuckDiceAPI extends CasinoAPI {
                     betAmount: parseFloat(data.bet.betAmount),
                     hash: data.bet.hash,
                     nonce: data.bet.nonce,
+                    // Update balance from response
                     newBalance: data.user ? parseFloat(data.user.balance) : null
                 };
             }
@@ -480,6 +272,12 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
+    /**
+     * Send a tip to another user
+     * @param {string} username - Username to send tip to
+     * @param {number} amount - Amount in BTC
+     * @returns {Promise<Object>} Result of tip operation
+     */
     async sendTip(username, amount) {
         try {
             const tipData = {
@@ -521,48 +319,71 @@ class DuckDiceAPI extends CasinoAPI {
         }
     }
 
+    /**
+     * Get bet history (Note: endpoint may vary based on API version)
+     * @param {number} limit - Number of recent bets to retrieve
+     * @returns {Promise<Array>} Array of bet objects
+     */
+    async getBetHistory(limit = 20) {
+        try {
+            // Note: The exact endpoint for bet history may need to be confirmed
+            const url = `${this.baseURL}/history/${this.currency}?api_key=${this.apiKey}&limit=${limit}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data || [];
+        } catch (error) {
+            console.error('DuckDice getBetHistory error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Disconnect from the API
+     */
+    disconnect() {
+        this.authenticated = false;
+        this.apiKey = null;
+        this.currentSeed = null;
+    }
+
+    /**
+     * Set the currency to use for betting
+     * @param {string} currency - Currency code (BTC, ETH, LTC, etc.)
+     */
     setCurrency(currency) {
         const supportedCurrencies = ['BTC', 'ETH', 'LTC', 'DOGE', 'DASH', 'BCH', 'XMR', 'XRP', 'ETC', 'BTG', 'XLM', 'ZEC', 'USDT', 'DTP'];
         if (supportedCurrencies.includes(currency.toUpperCase())) {
             this.currency = currency.toUpperCase();
-            return true;
         } else {
-            throw new Error(`Unsupported currency: ${currency}. Supported: ${supportedCurrencies.join(', ')}`);
+            throw new Error(`Unsupported currency: ${currency}`);
         }
     }
 
+    /**
+     * Set the betting mode
+     * @param {number} mode - 1 for main balance, 2 for faucet balance
+     */
     setMode(mode) {
         if (mode === 1 || mode === 2) {
             this.mode = mode;
-            return true;
         } else {
             throw new Error('Invalid mode. Use 1 for main balance or 2 for faucet balance');
         }
-    }
-
-    disconnect() {
-        super.disconnect();
-        this.currentSeed = null;
-    }
-}
-
-// Factory function to create appropriate API instance
-function createCasinoAPI(siteName) {
-    switch(siteName.toLowerCase()) {
-        case 'stake':
-            return new StakeAPI();
-        case 'bitsler':
-            return new BitslerAPI();
-        case 'duckdice':
-            return new DuckDiceAPI();
-        case 'simulation':
-            return null; // Use local simulation
-        default:
-            throw new Error(`Unsupported casino site: ${siteName}`);
     }
 }
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CasinoAPI, StakeAPI, BitslerAPI, DuckDiceAPI, createCasinoAPI };
+    module.exports = DuckDiceAPI;
 }

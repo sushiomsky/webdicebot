@@ -10,7 +10,7 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 - **Manual Betting** - Place single bets manually
 - **Automated Betting** - Run continuous betting with strategies
 - **Simulation Mode** - Safe testing without real money
-- **Real Casino Integration** - Connect to Stake, PrimeDice, Bitsler, DuckDice
+- **Real Casino Integration** - Connect to Stake, Bitsler, DuckDice
 
 ### 📊 Betting Strategies
 - **Martingale** - Double bet after loss, reset after win
@@ -61,9 +61,8 @@ A complete web-based cryptocurrency dice betting bot inspired by [Seuntjie's Dic
 
 ### 🔌 Casino API Integration
 - **Stake.com** - API Key authentication
-- **PrimeDice** - Username/Password or API Key
 - **Bitsler** - API Key authentication
-- **DuckDice** - API Key authentication
+- **DuckDice** - API Key authentication with complete API support
 - Real-time balance synchronization
 - Provably fair bet verification
 
@@ -105,7 +104,7 @@ python3 -m http.server 8080
 5. **Start Bot** - Click "Start Bot" to begin automated betting
 
 #### Real Casino Mode
-1. **Select Site** - Choose a casino from the dropdown (Stake, PrimeDice, etc.)
+1. **Select Site** - Choose a casino from the dropdown (Stake, Bitsler, DuckDice, etc.)
 2. **Enter Credentials** - Provide your API key or username/password
 3. **Connect** - Click "Connect" to authenticate
 4. **Configure & Start** - Set up your strategy and start betting with real money

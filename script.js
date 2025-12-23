@@ -161,14 +161,8 @@ class DiceBot {
             authPanel.style.display = 'block';
             document.getElementById('balance').disabled = true;
             
-            // Show appropriate auth method
-            if (site === 'stake' || site === 'bitsler' || site === 'duckdice') {
-                apiKeyAuth.style.display = 'block';
-                usernameAuth.style.display = 'none';
-            } else if (site === 'primedice') {
-                apiKeyAuth.style.display = 'none';
-                usernameAuth.style.display = 'block';
-            }
+            // All supported sites use API key authentication
+            apiKeyAuth.style.display = 'block';
         }
     }
 
@@ -183,22 +177,14 @@ class DiceBot {
             // Create API instance
             this.casinoAPI = createCasinoAPI(site);
             
-            // Get credentials
-            let credentials = {};
-            if (site === 'stake' || site === 'bitsler' || site === 'duckdice') {
-                credentials.apiKey = document.getElementById('api-key').value;
-                if (!credentials.apiKey) {
-                    this.showNotification('Please enter your API key', 'error');
-                    return;
-                }
-            } else {
-                credentials.username = document.getElementById('api-username').value;
-                credentials.password = document.getElementById('api-password').value;
-                if (!credentials.username || !credentials.password) {
-                    this.showNotification('Please enter username and password', 'error');
-                    return;
-                }
+            // Get API key
+            const apiKey = document.getElementById('api-key').value;
+            if (!apiKey) {
+                this.showNotification('Please enter your API key', 'error');
+                return;
             }
+            
+            const credentials = { apiKey };
             
             // Attempt authentication
             this.showNotification(`Connecting to ${site}...`, 'warning');
